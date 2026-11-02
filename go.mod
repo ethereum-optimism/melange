@@ -3,7 +3,7 @@ module chainguard.dev/melange
 go 1.27.0
 
 require (
-	chainguard.dev/apko v1.4.16-0.20261102122352-3f4d907734a3
+	chainguard.dev/apko v1.4.16-0.20261102122352-5335a05b5c85
 	chainguard.dev/license v0.1.2
 	github.com/chainguard-dev/clog v1.8.1
 	github.com/chainguard-dev/go-pkgconfig v0.0.0-20260625083649-3332107431aa
@@ -175,4 +175,4 @@ require (
 	k8s.io/klog/v2 v2.140.0 // indirect
 )
 
-replace chainguard.dev/apko => github.com/falcorocks/apko v1.4.16-0.20261102122352-3f4d907734a3
+replace chainguard.dev/apko => github.com/ethereum-optimism/apko v1.4.16-0.20261102122352-5335a05b5c85
