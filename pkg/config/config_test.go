@@ -328,6 +328,38 @@ update:
 	require.Equal(t, "release-", cfg.Update.GitMonitor.TagFilterPrefix)
 }
 
+func Test_varsFileWithoutVarsBlock(t *testing.T) {
+	ctx := slogtest.Context(t)
+
+	dir := t.TempDir()
+	fp := filepath.Join(dir, "melange.yaml")
+	if err := os.WriteFile(fp, []byte(`
+package:
+  name: vars-file-no-block
+  version: ${{vars.pkgver}}
+  epoch: 0
+  description: vars file without a vars block
+
+pipeline:
+  - runs: echo hi
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	varsFile := filepath.Join(dir, "vars.yaml")
+	if err := os.WriteFile(varsFile, []byte("pkgver: 1.2.3\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := ParseConfiguration(ctx, fp, WithVarsFileForParsing(varsFile))
+	if err != nil {
+		t.Fatalf("failed to parse configuration: %s", err)
+	}
+
+	require.Equal(t, "1.2.3", cfg.Vars["pkgver"])
+	require.Equal(t, "1.2.3", cfg.Package.Version)
+}
+
 func Test_rangeSubstitutions(t *testing.T) {
 	ctx := slogtest.Context(t)
 
