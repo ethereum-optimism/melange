@@ -85,6 +85,348 @@
           "referenceType": "purl"
         }
       ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-containerd-stargz-snapshotter-estargz-v0.14.3",
+      "name": "github.com/containerd/stargz-snapshotter/estargz",
+      "versionInfo": "v0.14.3",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/containerd/stargz-snapshotter/estargz@v0.14.3",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-docker-cli-v27.1.1C43incompatible",
+      "name": "github.com/docker/cli",
+      "versionInfo": "v27.1.1+incompatible",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/docker/cli@v27.1.1%2Bincompatible",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-docker-distribution-v2.8.2C43incompatible",
+      "name": "github.com/docker/distribution",
+      "versionInfo": "v2.8.2+incompatible",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/docker/distribution@v2.8.2%2Bincompatible",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-docker-docker-credential-helpers-v0.7.0",
+      "name": "github.com/docker/docker-credential-helpers",
+      "versionInfo": "v0.7.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/docker/docker-credential-helpers@v0.7.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-google-go-cmp-v0.5.9",
+      "name": "github.com/google/go-cmp",
+      "versionInfo": "v0.5.9",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/google/go-cmp@v0.5.9",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-google-go-containerregistry-v0.20.2",
+      "name": "github.com/google/go-containerregistry",
+      "versionInfo": "v0.20.2",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "APPLICATION",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/google/go-containerregistry@v0.20.2",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-klauspost-compress-v1.16.5",
+      "name": "github.com/klauspost/compress",
+      "versionInfo": "v1.16.5",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/klauspost/compress@v1.16.5",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-mitchellh-go-homedir-v1.1.0",
+      "name": "github.com/mitchellh/go-homedir",
+      "versionInfo": "v1.1.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/mitchellh/go-homedir@v1.1.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-opencontainers-go-digest-v1.0.0",
+      "name": "github.com/opencontainers/go-digest",
+      "versionInfo": "v1.0.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/opencontainers/go-digest@v1.0.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-opencontainers-image-spec-v1.1.0-rc3",
+      "name": "github.com/opencontainers/image-spec",
+      "versionInfo": "v1.1.0-rc3",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/opencontainers/image-spec@v1.1.0-rc3",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-pkg-errors-v0.9.1",
+      "name": "github.com/pkg/errors",
+      "versionInfo": "v0.9.1",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/pkg/errors@v0.9.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-sirupsen-logrus-v1.9.1",
+      "name": "github.com/sirupsen/logrus",
+      "versionInfo": "v1.9.1",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/sirupsen/logrus@v1.9.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-spf13-cobra-v1.7.0",
+      "name": "github.com/spf13/cobra",
+      "versionInfo": "v1.7.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/spf13/cobra@v1.7.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-spf13-pflag-v1.0.5",
+      "name": "github.com/spf13/pflag",
+      "versionInfo": "v1.0.5",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/spf13/pflag@v1.0.5",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-github.com-vbatts-tar-split-v0.11.3",
+      "name": "github.com/vbatts/tar-split",
+      "versionInfo": "v0.11.3",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/github.com/vbatts/tar-split@v0.11.3",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-golang.org-x-sync-v0.2.0",
+      "name": "golang.org/x/sync",
+      "versionInfo": "v0.2.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/golang.org/x/sync@v0.2.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-golang.org-x-sys-v0.15.0",
+      "name": "golang.org/x/sys",
+      "versionInfo": "v0.15.0",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/golang.org/x/sys@v0.15.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-golang-stdlib-1.27.3",
+      "name": "stdlib",
+      "versionInfo": "1.27.3",
+      "filesAnalyzed": false,
+      "licenseConcluded": "NOASSERTION",
+      "licenseDeclared": "NOASSERTION",
+      "downloadLocation": "NOASSERTION",
+      "originator": "Organization: Wolfi",
+      "supplier": "Organization: Wolfi",
+      "primaryPackagePurpose": "LIBRARY",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:golang/stdlib@1.27.3",
+          "referenceType": "purl"
+        }
+      ]
     }
   ],
   "relationships": [
@@ -97,6 +439,96 @@
       "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-Source-github.com-google-go-containerregistry-v0.20.2-c195f151efe3369874c72662cd69ad43ee485128-0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-containerd-stargz-snapshotter-estargz-v0.14.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-docker-cli-v27.1.1C43incompatible"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-docker-distribution-v2.8.2C43incompatible"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-docker-docker-credential-helpers-v0.7.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-google-go-cmp-v0.5.9"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-google-go-containerregistry-v0.20.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-klauspost-compress-v1.16.5"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-mitchellh-go-homedir-v1.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-opencontainers-go-digest-v1.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-opencontainers-image-spec-v1.1.0-rc3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-pkg-errors-v0.9.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-sirupsen-logrus-v1.9.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-spf13-cobra-v1.7.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-spf13-pflag-v1.0.5"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-github.com-vbatts-tar-split-v0.11.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-golang.org-x-sync-v0.2.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-golang.org-x-sys-v0.15.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
+      "relationshipType": "CONTAINS",
+      "relatedSpdxElement": "SPDXRef-Package-golang-stdlib-1.27.3"
     }
   ]
 }

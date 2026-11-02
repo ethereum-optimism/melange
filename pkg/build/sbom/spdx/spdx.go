@@ -205,6 +205,17 @@ func (g *Generator) GenerateSPDX(ctx context.Context, gc *build.GeneratorContext
 		}
 	}
 
+	// Add the Go modules compiled into the binaries of each package to that
+	// package's SBOM.
+	for _, sp := range gc.Configuration.Subpackages {
+		if err := addGoModulePackages(sg.Document(sp.Name), gc.OutputFS, sp.Name, gc.Namespace); err != nil {
+			return nil, fmt.Errorf("adding Go modules for subpackage %s: %w", sp.Name, err)
+		}
+	}
+	if err := addGoModulePackages(pSBOM, gc.OutputFS, pkg.Name, gc.Namespace); err != nil {
+		return nil, fmt.Errorf("adding Go modules for %s: %w", pkg.Name, err)
+	}
+
 	// Add licensing information
 	li, err := gc.Configuration.Package.LicensingInfos(ctx, gc.WorkspaceDir)
 	if err != nil {

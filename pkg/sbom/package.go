@@ -107,7 +107,7 @@ func (p Package) ToSPDX(ctx context.Context) spdx.Package {
 	if p.LicenseDeclared == "" {
 		log.Warnf("%s: no license specified, defaulting to %s", p.ID(), spdx.NOASSERTION)
 		p.LicenseDeclared = spdx.NOASSERTION
-	} else {
+	} else if p.LicenseDeclared != spdx.NOASSERTION {
 		valid, bad := spdxexp.ValidateLicenses([]string{p.LicenseDeclared})
 		if !valid {
 			log.Warnf("invalid license: %s", strings.Join(bad, ", "))
