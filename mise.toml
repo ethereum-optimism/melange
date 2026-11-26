@@ -1,0 +1,6 @@
+[tools]
+go = "1.27.4"
+goreleaser-pro = "2.11.2"
+
+[tool_alias]
+goreleaser-pro = "github:goreleaser/goreleaser-pro"
