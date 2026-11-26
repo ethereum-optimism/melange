@@ -13,7 +13,7 @@ jobs:
       contents: write
       id-token: write
       attestations: write
-    uses: ethereum-optimism/factory/.github/workflows/goreleaser.yaml@00b80b91199b784a5f3887ffe0c416ce23b04e32
+    uses: ethereum-optimism/factory/.github/workflows/goreleaser.yaml@10b9826b174192cef1c05f244155f6f8012d9e0f
     with:
       tag: ${{ github.ref_name }}
       config: .goreleaser.yaml
