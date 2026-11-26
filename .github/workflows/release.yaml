@@ -18,6 +18,6 @@ jobs:
       tag: ${{ github.ref_name }}
       config: .goreleaser.yaml
       environment: goreleaser
-      mise-install-args: go goreleaser-pro
+      mise-install-args: go goreleaser-pro syft
     secrets:
       GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}

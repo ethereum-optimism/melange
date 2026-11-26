@@ -28,7 +28,7 @@ builds:
     ldflags:
       - -s -w -buildid=
       - -extldflags "-static"
-      - -X sigs.k8s.io/release-utils/version.gitVersion={{ .Version }}
+      - -X sigs.k8s.io/release-utils/version.gitVersion={{ .Tag }}
       - -X sigs.k8s.io/release-utils/version.gitCommit={{ .FullCommit }}
       - -X sigs.k8s.io/release-utils/version.gitTreeState=clean
       - -X sigs.k8s.io/release-utils/version.buildDate={{ .CommitDate }}
@@ -46,6 +46,19 @@ archives:
 checksum:
   name_template: checksums.txt
   algorithm: sha256
+
+sboms:
+  - id: archive
+    artifacts: archive
+    documents:
+      - "{{ .ArtifactName }}.sbom.json"
+    cmd: syft
+    env:
+      - SYFT_CHECK_FOR_APP_UPDATE=false
+    args:
+      - "$artifact"
+      - "--output"
+      - "spdx-json=$document"
 
 changelog:
   disable: true
