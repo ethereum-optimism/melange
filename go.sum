@@ -1,13 +1,11 @@
-chainguard.dev/apko v1.5.2 h1:PiUMV8zqZ4Z4uVndsz/0woiPEwjFO8e4mYs+1K/zs6g=
-chainguard.dev/apko v1.5.2/go.mod h1:tviEtL6obxVY7o4JVfudQZUHJqMD7sNbzqTJDqVNj8E=
 chainguard.dev/go-grpc-kit v0.20.0 h1:MDwZtTlUlMSMEPcoi9m8tnu4g+M88T1toUZ3Th/+0Gc=
 chainguard.dev/go-grpc-kit v0.20.0/go.mod h1:ocuwyRX9tqRRvJkS3/ZkDYGMnl+6FLC4bvF0cm6DGsk=
 chainguard.dev/go-oidctest v0.4.0 h1:B9YTfoa1WtsrEg0wnFeSP7i9tth0LO+GICm2j8HOgWI=
 chainguard.dev/go-oidctest v0.4.0/go.mod h1:IIic4S3je1I7Acy3bqPtaSPefGEsQDzUp7NJF35MPV4=
 chainguard.dev/license v0.1.5 h1:nLhqyKrGqseNYjon9z5T9SGKmxBYfUmOgANNdgnujTI=
 chainguard.dev/license v0.1.5/go.mod h1:x8aEF+mE33md+OANUrGjOb1XJeM4g4TDAzJX52u8zEM=
-chainguard.dev/sdk v0.2.2 h1:LrFlFvlr7MtGwF6wMIeO4wb4Ax9t0zRZlRoNQnfcq1w=
-chainguard.dev/sdk v0.2.2/go.mod h1:0v7DhL1zPZlNba24mEh/iwVNHGJTgY7hpvsE7q0Keb4=
+chainguard.dev/sdk v0.2.9 h1:cHZeNM4mTIEw++o+BYBujSNYEt9S74RIAxvg0MeC2Ag=
+chainguard.dev/sdk v0.2.9/go.mod h1:0v7DhL1zPZlNba24mEh/iwVNHGJTgY7hpvsE7q0Keb4=
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 cloud.google.com/go/auth v0.24.1-0.20261001053825-dbc26066f70a h1:jW1ZLFy9oa5ai8LOI40z6s+DL1cO/L1KSm9hVGnibn8=
 cloud.google.com/go/auth v0.24.1-0.20261001053825-dbc26066f70a/go.mod h1:1dmBXa9xfBvBr39ZnDUDkaaA91ccq9CcqENDgJA4d7c=
@@ -113,6 +111,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erofs/go-erofs v0.3.2 h1:GBWc9wyDOBVMLpA9OC0MkFfs4AbiEAAEhNH8SpQwD/4=
 github.com/erofs/go-erofs v0.3.2/go.mod h1:XkSeN9MHszGd4+3gcEjadJLYHCQpWzJ7/8yznzMuzJs=
+github.com/ethereum-optimism/apko v1.4.16-0.20261126130803-05a0b506a2cb h1:KlSSYn2z2/gX4mJpm//f9PB0pnkiv2pRVLyyrihuSnw=
+github.com/ethereum-optimism/apko v1.4.16-0.20261126130803-05a0b506a2cb/go.mod h1:9+h9B6MKnOI/OT6gikh4gRx1SxXHjDHmbeUaci+rgHE=
 github.com/fatih/color v1.19.0 h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=
 github.com/fatih/color v1.19.0/go.mod h1:zNk67I0ZUT1bEGsSGyCZYZNrHuTkJJB+r6Q9VuMi0LE=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
@@ -221,8 +221,8 @@ github.com/kelseyhightower/envconfig v1.4.0 h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dv
 github.com/kelseyhightower/envconfig v1.4.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=
 github.com/kevinburke/ssh_config v1.6.0 h1:J1FBfmuVosPHf5GRdltRLhPJtJpTlMdKTBjRgTaQBFY=
 github.com/kevinburke/ssh_config v1.6.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
-github.com/klauspost/compress v1.20.3 h1:zWNoFqq/lSuYQRim3dUXlXeA0IqwuZGicdG5ZTfY5j4=
-github.com/klauspost/compress v1.20.3/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
+github.com/klauspost/compress v1.20.5 h1:rJj5VjH4xQxbnLphg6eqUcDxRFCw1jpMdDY9qXlrwSs=
+github.com/klauspost/compress v1.20.5/go.mod h1:LUdAzn7YLVvxLpc7y3V1m40wESHTgc1422pwwBSKYuI=
 github.com/klauspost/pgzip v1.3.0 h1:8t+KjjzD/0n/8vNlJGGZmTeK4njuwffOQvJm8tOSc8o=
 github.com/klauspost/pgzip v1.3.0/go.mod h1:Xx7tAv5DH8ObLHUDQKXoE/nd8i/FYdNDTVMvi3SLTKI=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
@@ -450,8 +450,8 @@ golang.org/x/tools v0.52.0/go.mod h1:ItcP5UNaVGG+Yc4eIYmaFLNJ4soEopkx5Y2d4lcEurs
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
 gonum.org/v1/gonum v0.17.0 h1:VbpOemQlsSMrYmn7T2OUvQ4dqxQXU+ouZFQsZOx50z4=
 gonum.org/v1/gonum v0.17.0/go.mod h1:El3tOrEuMpv2UdMrbNlKEh9vd86bmQ6vqIcDwxEOc1E=
-google.golang.org/api v0.315.0 h1:77nwD4sln0GQQqQKb4CY+DJhRwA0AeQ4w0gkbLwRPms=
-google.golang.org/api v0.315.0/go.mod h1:kn5kd1IMbs2x4hq99GcaTOumC0fnMYMwLNAfFxzpISU=
+google.golang.org/api v0.316.0 h1:nwaBinxtopJcOPwNYkvuRo7JA2nKppWzzk1sSORUWp4=
+google.golang.org/api v0.316.0/go.mod h1:kn5kd1IMbs2x4hq99GcaTOumC0fnMYMwLNAfFxzpISU=
 google.golang.org/appengine v1.1.0/go.mod h1:EbEs0AVv82hx2wNQdGPgUI5lhzA/G0D9YwlJXL52JkM=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
 google.golang.org/genproto v0.0.0-20180817151627-c66870c02cf8/go.mod h1:JiN7NxoALGmiZfu7CAH4rXhgtRTLTxftemlI0sWmxmc=
