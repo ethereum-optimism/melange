@@ -73,11 +73,13 @@ type Test struct {
 	Interactive         bool
 	Auth                map[string]options.Auth
 	IgnoreSignatures    bool
-	DefaultCPU          string
-	DefaultCPUModel     string
-	DefaultDisk         string
-	DefaultMemory       string
-	DefaultTimeout      time.Duration
+	// Guest controls how the test guest environment is installed.
+	Guest           GuestEnvironment
+	DefaultCPU      string
+	DefaultCPUModel string
+	DefaultDisk     string
+	DefaultMemory   string
+	DefaultTimeout  time.Duration
 }
 
 func NewTest(ctx context.Context, opts ...TestOption) (*Test, error) {
@@ -94,6 +96,10 @@ func NewTest(ctx context.Context, opts ...TestOption) (*Test, error) {
 
 	if t.ExtraCACertificates == nil {
 		t.ExtraCACertificates = extraCACertsFromEnv()
+	}
+
+	if err := t.Guest.validate(); err != nil {
+		return nil, err
 	}
 
 	log := clog.FromContext(ctx).With("arch", t.Arch)
@@ -162,22 +168,9 @@ func (t *Test) BuildGuest(ctx context.Context, imgConfig apko_types.ImageConfigu
 	}
 	defer os.RemoveAll(tmp)
 
-	imgConfig, err = withExtraCACertificates(imgConfig, t.ExtraCACertificates)
+	bc, err := t.newGuestContext(ctx, imgConfig, guestFS, tmp)
 	if err != nil {
 		return "", err
-	}
-
-	bc, err := apko_build.New(ctx, guestFS,
-		apko_build.WithImageConfiguration(imgConfig),
-		apko_build.WithArch(t.Arch),
-		apko_build.WithExtraKeys(t.ExtraKeys),
-		apko_build.WithExtraBuildRepos(t.ExtraRepos),
-		apko_build.WithExtraPackages(t.ExtraTestPackages),
-		apko_build.WithIgnoreSignatures(t.IgnoreSignatures),
-		apko_build.WithCache(t.ApkCacheDir, false, apk.NewCache(true)),
-		apko_build.WithTempDir(tmp))
-	if err != nil {
-		return "", fmt.Errorf("unable to create build context: %w", err)
 	}
 
 	t.Summarize(ctx)
@@ -208,6 +201,49 @@ func (t *Test) BuildGuest(ctx context.Context, imgConfig apko_types.ImageConfigu
 	log.Debugf("pushed %s as %v", layerTarGZ, ref)
 	log.Debug("successfully built workspace with apko")
 	return ref, nil
+}
+
+// guestApkoOptions returns the apko options shared by resolving and
+// installing the test guest environment.
+func (t *Test) guestApkoOptions(tmp string) []apko_build.Option {
+	opts := []apko_build.Option{
+		apko_build.WithArch(t.Arch),
+		apko_build.WithExtraKeys(t.ExtraKeys),
+		apko_build.WithExtraBuildRepos(t.ExtraRepos),
+		apko_build.WithExtraPackages(t.ExtraTestPackages),
+		apko_build.WithIgnoreSignatures(t.IgnoreSignatures),
+		apko_build.WithCache(t.ApkCacheDir, t.Guest.Offline, apk.NewCache(true)),
+	}
+	if tmp != "" {
+		opts = append(opts, apko_build.WithTempDir(tmp))
+	}
+	return opts
+}
+
+// newGuestContext returns the apko build context for the test guest
+// environment imgConfig, installed from the lock file when one is set.
+func (t *Test) newGuestContext(ctx context.Context, imgConfig apko_types.ImageConfiguration, guestFS apkofs.FullFS, tmp string) (*apko_build.Context, error) {
+	var lockOpts []apko_build.Option
+	if t.Guest.LockFile != "" {
+		locked, err := lockedEnvironment(t.Guest.LockFile, imgConfig, t.ExtraTestPackages, t.Arch)
+		if err != nil {
+			return nil, err
+		}
+		imgConfig = locked
+		lockOpts = t.Guest.apkoOptions()
+	}
+
+	imgConfig, err := withExtraCACertificates(imgConfig, t.ExtraCACertificates)
+	if err != nil {
+		return nil, err
+	}
+
+	opts := append([]apko_build.Option{apko_build.WithImageConfiguration(imgConfig)}, t.guestApkoOptions(tmp)...)
+	bc, err := apko_build.New(ctx, guestFS, append(opts, lockOpts...)...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create build context: %w", err)
+	}
+	return bc, nil
 }
 
 // IsTestless returns true if the test context does not actually do any
@@ -280,6 +316,14 @@ func (t *Test) TestPackage(ctx context.Context) error {
 
 		return !result
 	})
+
+	if t.Guest.LockFile != "" {
+		for _, sp := range t.Configuration.Subpackages {
+			if sp.Test != nil && len(sp.Test.Pipeline) > 0 {
+				return fmt.Errorf("--env-lockfile locks the main test environment only, but subpackage %s has tests", sp.Name)
+			}
+		}
+	}
 
 	// Unless a specific architecture is requests, we run the test for all.
 	inarchs := len(pkg.TargetArchitecture) == 0

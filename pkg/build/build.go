@@ -159,6 +159,9 @@ type Build struct {
 	Auth                  map[string]options.Auth
 	IgnoreSignatures      bool
 
+	// Guest controls how the build guest environment is installed.
+	Guest GuestEnvironment
+
 	// ExcludedEnvFromRecordedConfig lists environment variable keys to omit
 	// from the configuration recorded into built artifacts. The variables
 	// are still set in the build environment.
@@ -225,6 +228,10 @@ func New(ctx context.Context, opts ...Option) (*Build, error) {
 
 	if b.ExtraCACertificates == nil {
 		b.ExtraCACertificates = extraCACertsFromEnv()
+	}
+
+	if err := b.Guest.validate(); err != nil {
+		return nil, err
 	}
 
 	log := clog.FromContext(ctx).With("arch", b.Arch.ToAPK())
@@ -362,55 +369,10 @@ func (b *Build) buildGuest(ctx context.Context, imgConfig apko_types.ImageConfig
 	}
 	defer os.RemoveAll(tmp)
 
-	// Work around LockImageConfiguration assuming multi-arch.
-	imgConfig.Archs = []apko_types.Architecture{b.Arch}
-
-	opts := make([]apko_build.Option, 0, 9)
-	opts = append(opts,
-		apko_build.WithImageConfiguration(imgConfig),
-		apko_build.WithArch(b.Arch),
-		apko_build.WithExtraKeys(b.ExtraKeys),
-		apko_build.WithExtraBuildRepos(b.ExtraRepos),
-		apko_build.WithExtraPackages(b.ExtraPackages),
-		apko_build.WithCache(b.ApkCacheDir, false, apk.NewCache(true)),
-		apko_build.WithTempDir(tmp),
-		apko_build.WithIgnoreSignatures(b.IgnoreSignatures),
-	)
-
-	configs, warn, err := apko_build.LockImageConfiguration(ctx, imgConfig, opts...)
-	if err != nil {
-		return "", fmt.Errorf("unable to lock image configuration: %w", err)
-	}
-
-	for k, v := range warn {
-		log.Warnf("Unable to lock package %s: %s", k, v)
-	}
-
-	locked, ok := configs["index"]
-	if !ok {
-		return "", errors.New("missing locked config")
-	}
-
-	// Overwrite the environment with the locked one.
-	b.Configuration.Environment = *locked
-
-	guestConfig, err := withExtraCACertificates(*locked, b.ExtraCACertificates)
+	bc, err := b.newGuestContext(ctx, imgConfig, guestFS, tmp)
 	if err != nil {
 		return "", err
 	}
-	opts = append(opts, apko_build.WithImageConfiguration(guestConfig))
-
-	bc, err := apko_build.New(ctx, guestFS, opts...)
-	if err != nil {
-		return "", fmt.Errorf("unable to create build context: %w", err)
-	}
-
-	// Get the APK associated with our build, and then get a Resolver
-	namedIndexes, err := bc.APK().GetRepositoryIndexes(ctx, false)
-	if err != nil {
-		return "", fmt.Errorf("unable to obtain repository indexes: %w", err)
-	}
-	b.PkgResolver = apk.NewPkgResolver(ctx, namedIndexes)
 
 	bc.Summarize(ctx)
 	log.Infof("auth configured for: %v", maps.Keys(b.Auth)) // TODO: add this to summarize
@@ -441,6 +403,83 @@ func (b *Build) buildGuest(ctx context.Context, imgConfig apko_types.ImageConfig
 	log.Debugf("pushed %s as %v", layerTarGZ, ref)
 	log.Debug("successfully built workspace with apko")
 	return ref, nil
+}
+
+// guestApkoOptions returns the apko options shared by resolving and
+// installing the build guest environment.
+func (b *Build) guestApkoOptions(tmp string) []apko_build.Option {
+	opts := []apko_build.Option{
+		apko_build.WithArch(b.Arch),
+		apko_build.WithExtraKeys(b.ExtraKeys),
+		apko_build.WithExtraBuildRepos(b.ExtraRepos),
+		apko_build.WithExtraPackages(b.ExtraPackages),
+		apko_build.WithCache(b.ApkCacheDir, b.Guest.Offline, apk.NewCache(true)),
+		apko_build.WithIgnoreSignatures(b.IgnoreSignatures),
+	}
+	if tmp != "" {
+		opts = append(opts, apko_build.WithTempDir(tmp))
+	}
+	return opts
+}
+
+// newGuestContext returns the apko build context for the guest environment
+// imgConfig. Without a lock file, the environment is resolved from the
+// repository indexes; with one, it is installed from the lock file. Either
+// way Configuration.Environment is overwritten with the environment pinned to
+// the resolved package versions, and PkgResolver is set.
+func (b *Build) newGuestContext(ctx context.Context, imgConfig apko_types.ImageConfiguration, guestFS apkofs.FullFS, tmp string) (*apko_build.Context, error) {
+	log := clog.FromContext(ctx)
+
+	// Work around LockImageConfiguration assuming multi-arch.
+	imgConfig.Archs = []apko_types.Architecture{b.Arch}
+
+	opts := append([]apko_build.Option{apko_build.WithImageConfiguration(imgConfig)}, b.guestApkoOptions(tmp)...)
+
+	var locked *apko_types.ImageConfiguration
+	if b.Guest.LockFile != "" {
+		ic, err := lockedEnvironment(b.Guest.LockFile, imgConfig, b.ExtraPackages, b.Arch)
+		if err != nil {
+			return nil, err
+		}
+		locked = &ic
+		opts = append(opts, b.Guest.apkoOptions()...)
+	} else {
+		configs, warn, err := apko_build.LockImageConfiguration(ctx, imgConfig, opts...)
+		if err != nil {
+			return nil, fmt.Errorf("unable to lock image configuration: %w", err)
+		}
+
+		for k, v := range warn {
+			log.Warnf("Unable to lock package %s: %s", k, v)
+		}
+
+		var ok bool
+		locked, ok = configs["index"]
+		if !ok {
+			return nil, errors.New("missing locked config")
+		}
+	}
+
+	// Overwrite the environment with the locked one.
+	b.Configuration.Environment = *locked
+
+	guestConfig, err := withExtraCACertificates(*locked, b.ExtraCACertificates)
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, apko_build.WithImageConfiguration(guestConfig))
+
+	bc, err := apko_build.New(ctx, guestFS, opts...)
+	if err != nil {
+		return nil, fmt.Errorf("unable to create build context: %w", err)
+	}
+
+	// Get the APK associated with our build, and then get a Resolver
+	b.PkgResolver, err = guestPkgResolver(ctx, b.Guest, bc)
+	if err != nil {
+		return nil, err
+	}
+	return bc, nil
 }
 
 func copyFile(base, src, dest string, perm fs.FileMode) error {

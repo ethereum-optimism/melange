@@ -60,6 +60,7 @@ func New() *cobra.Command {
 	cmd.AddCommand(keygen())
 	cmd.AddCommand(licenseCheck())
 	cmd.AddCommand(lint())
+	cmd.AddCommand(lockCmd())
 	cmd.AddCommand(packageVersion())
 	cmd.AddCommand(query())
 	cmd.AddCommand(scan())

@@ -45,6 +45,7 @@ melange build [flags]
       --disk string                                             disk size to use for builds
       --empty-workspace[=true|false]                            whether the build workspace should be empty
       --env-file strings                                        files to use for preloaded environment variables
+      --env-lockfile string                                     install the build environment from this lock file (written by melange lock) instead of resolving it from the repository indexes
       --exclude-env-from-recorded-config strings                environment variable keys to omit from the build configuration recorded in built packages (the variables are still set in the build environment)
       --generate-index[=true|false]                             whether to generate APKINDEX.tar.gz (default true)
       --generate-provenance[=true|false]                        generate SLSA provenance for builds (included in a separate .attest.tar.gz file next to the APK)
@@ -57,8 +58,10 @@ melange build [flags]
       --license string                                          license to use for the build config file itself (default "NOASSERTION")
       --lint-require strings                                    linters that must pass (default [dev,infodir,libtool/la-files,setuidgid,tempdir,usrmerge,varempty,worldwrite])
       --lint-warn strings                                       linters that will generate warnings (default [binaryarch,cudaruntimelib,dll,duplicate,dylib,lddcheck,maninfo,nonlinux,object,opt,pkgconf,python/docs,python/multiple,python/test,sbom,srv,staticarchive,strip,unsupportedarch,usrlocal])
+      --local-package stringArray                               <name>=sha256:<hex> digest of a local package of the environment lock file (repeatable)
       --memory string                                           default memory resources to use for builds
       --namespace string                                        namespace to use in package URLs in SBOM (eg wolfi, alpine) (default "unknown")
+      --offline[=true|false]                                    read the build environment packages, keys and indexes from --apk-cache-dir only, without network access
       --out-dir string                                          directory where packages will be output (default "./packages/")
       --override-host-triplet-libc-substitution-flavor string   override the flavor of libc for ${{host.triplet.*}} substitutions (e.g. gnu,musl) -- default is gnu (default "gnu")
       --package-append strings                                  extra packages to install for each of the build environments
@@ -66,6 +69,7 @@ melange build [flags]
       --pipeline-dir string                                     directory used to extend defined built-in pipelines
       --pipeline-dirs strings                                   directories used to extend defined built-in pipelines
   -r, --repository-append strings                               path to extra repositories to include in the build environment
+      --require-strong-checksums[=true|false]                   fail when the environment lock file has a package without a sha256 or a key without embedded content
       --rm[=true|false]                                         clean up intermediate artifacts (e.g. container images, temp dirs) (default true)
       --runner string                                           which runner to use to enable running commands, default is based on your platform. Options are ["bubblewrap" "docker" "qemu"]
       --signing-key string                                      key to use for signing

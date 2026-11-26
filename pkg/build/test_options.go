@@ -165,6 +165,42 @@ func WithTestPackage(pkg string) TestOption {
 	}
 }
 
+// WithTestEnvLockfile installs the test guest environment from an environment
+// lock file written by `melange lock --test`.
+func WithTestEnvLockfile(file string) TestOption {
+	return func(t *Test) error {
+		t.Guest.LockFile = file
+		return nil
+	}
+}
+
+// WithTestOffline reads the test guest packages, keys and indexes from the
+// apk cache directory only.
+func WithTestOffline(offline bool) TestOption {
+	return func(t *Test) error {
+		t.Guest.Offline = offline
+		return nil
+	}
+}
+
+// WithTestRequireStrongChecksums fails the test when the environment lock
+// file has a package without a whole-file sha256 or a key without content.
+func WithTestRequireStrongChecksums(require bool) TestOption {
+	return func(t *Test) error {
+		t.Guest.RequireStrongChecksums = require
+		return nil
+	}
+}
+
+// WithTestLocalPackages sets the "<name>=sha256:<hex>" digests of the local
+// packages in the environment lock file.
+func WithTestLocalPackages(specs []string) TestOption {
+	return func(t *Test) error {
+		t.Guest.LocalPackages = specs
+		return nil
+	}
+}
+
 func WithTestPackageCacheDir(apkCacheDir string) TestOption {
 	return func(t *Test) error {
 		t.ApkCacheDir = apkCacheDir
