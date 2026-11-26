@@ -1,0 +1,11 @@
+[tools]
+go = "1.27.4"
+goreleaser-pro = "2.11.2"
+syft = "1.57.2"
+
+[tool_alias]
+goreleaser-pro = "github:goreleaser/goreleaser-pro"
+syft = "github:anchore/syft"
+
+[settings]
+locked = true

@@ -1,0 +1,64 @@
+lockfile_version = 4
+
+[[tools.go]]
+version = "1.27.4"
+backend = "core:go"
+specifiers = ["1.27.4"]
+
+[tools.go."platforms.linux-arm64"]
+checksum = "sha256:3392582988a273a87ab5043ee1b2c9c17a2c3c00580bf9326c47a2e0aaaeac92"
+url = "https://dl.google.com/go/go1.27.4.linux-arm64.tar.gz"
+
+[tools.go."platforms.linux-x64"]
+checksum = "sha256:7226736c2339719cda28fbf3a54d71aa63bcefe376e98cef00034268dab24840"
+url = "https://dl.google.com/go/go1.27.4.linux-amd64.tar.gz"
+
+[tools.go."platforms.macos-arm64"]
+checksum = "sha256:91a44a2b8a716600ad94a4f143e156116620db8828086a6e3602291be9bd0bb4"
+url = "https://dl.google.com/go/go1.27.4.darwin-arm64.tar.gz"
+
+[[tools.goreleaser-pro]]
+version = "2.11.2"
+backend = "github:goreleaser/goreleaser-pro"
+specifiers = ["2.11.2"]
+
+[tools.goreleaser-pro."platforms.linux-arm64"]
+checksum = "sha256:571f72c3b948a790d0e09d20e588eff4c91307aff836e6181540eb175fcdbe8c"
+checksum_source = "mise-versions"
+url = "https://github.com/goreleaser/goreleaser-pro/releases/download/v2.11.2/goreleaser-pro_Linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/goreleaser/goreleaser-pro/releases/assets/278099360"
+
+[tools.goreleaser-pro."platforms.linux-x64"]
+checksum = "sha256:86e7947e36da21cedd70ffb0cacb124688f3b9e3756f2a203ca2e9dc2c179aa3"
+checksum_source = "mise-versions"
+url = "https://github.com/goreleaser/goreleaser-pro/releases/download/v2.11.2/goreleaser-pro_Linux_x86_64.tar.gz"
+url_api = "https://api.github.com/repos/goreleaser/goreleaser-pro/releases/assets/278099351"
+
+[tools.goreleaser-pro."platforms.macos-arm64"]
+checksum = "sha256:079d70257f79ca5444d44ff4f0502cdcce6121ce9a4d379a6de3accc7d29d612"
+checksum_source = "mise-versions"
+url = "https://github.com/goreleaser/goreleaser-pro/releases/download/v2.11.2/goreleaser-pro_Darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/goreleaser/goreleaser-pro/releases/assets/278099314"
+
+[[tools.syft]]
+version = "1.57.2"
+backend = "github:anchore/syft"
+specifiers = ["1.57.2"]
+
+[tools.syft."platforms.linux-arm64"]
+checksum = "sha256:8efe605309c98798e1ee0cffdcf8c05ca26819b4cd44c0b03650f1e963e9bdb6"
+url = "https://github.com/anchore/syft/releases/download/v1.57.2/syft_1.57.2_linux_arm64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/syft/releases/assets/756262248"
+provenance = "github-attestations"
+
+[tools.syft."platforms.linux-x64"]
+checksum = "sha256:ad92bd3ec1b94a3df01d4d0aec199afa9c42b72e86da436ff5f837914d32706b"
+url = "https://github.com/anchore/syft/releases/download/v1.57.2/syft_1.57.2_linux_amd64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/syft/releases/assets/756262255"
+provenance = "github-attestations"
+
+[tools.syft."platforms.macos-arm64"]
+checksum = "sha256:38afbcc03a9d9afac2d7572432fd2c435e051e03930582ea90f4710ffb515224"
+url = "https://github.com/anchore/syft/releases/download/v1.57.2/syft_1.57.2_darwin_arm64.tar.gz"
+url_api = "https://api.github.com/repos/anchore/syft/releases/assets/756262237"
+provenance = "github-attestations"
