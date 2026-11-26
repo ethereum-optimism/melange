@@ -410,9 +410,9 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-golang-stdlib-1.27.3",
+      "SPDXID": "SPDXRef-Package-golang-stdlib-1.27.4",
       "name": "stdlib",
-      "versionInfo": "1.27.3",
+      "versionInfo": "1.27.4",
       "filesAnalyzed": false,
       "licenseConcluded": "NOASSERTION",
       "licenseDeclared": "NOASSERTION",
@@ -423,7 +423,7 @@
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:golang/stdlib@1.27.3",
+          "referenceLocator": "pkg:golang/stdlib@1.27.4",
           "referenceType": "purl"
         }
       ]
@@ -528,7 +528,7 @@
     {
       "spdxElementId": "SPDXRef-Package-apk-crane-0.20.2-r1",
       "relationshipType": "CONTAINS",
-      "relatedSpdxElement": "SPDXRef-Package-golang-stdlib-1.27.3"
+      "relatedSpdxElement": "SPDXRef-Package-golang-stdlib-1.27.4"
     }
   ]
 }
