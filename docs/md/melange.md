@@ -29,6 +29,7 @@ toc: true
 * [melange keygen](/docs/md/melange_keygen.md)	 - Generate a key for package signing
 * [melange license-check](/docs/md/melange_license-check.md)	 - Gather and check licensing data
 * [melange lint](/docs/md/melange_lint.md)	 - EXPERIMENTAL COMMAND - Lints an APK, checking for problems and errors
+* [melange lock](/docs/md/melange_lock.md)	 - Lock the build or test environment of a YAML configuration file
 * [melange package-version](/docs/md/melange_package-version.md)	 - Report the target package for a YAML configuration file
 * [melange query](/docs/md/melange_query.md)	 - Query a Melange YAML file for information
 * [melange scan](/docs/md/melange_scan.md)	 - Scan an existing APK to regenerate .PKGINFO

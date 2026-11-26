@@ -40,6 +40,7 @@ func addTestFlags(fs *pflag.FlagSet, flags *TestFlags) {
 	fs.StringVar(&flags.CacheDir, "cache-dir", "", "directory used for cached inputs")
 	fs.StringVar(&flags.CacheSource, "cache-source", "", "directory or bucket used for preloading the cache")
 	fs.StringVar(&flags.ApkCacheDir, "apk-cache-dir", "", "directory used for cached apk packages (default is system-defined cache directory)")
+	addGuestFlags(fs, &flags.Guest, "test")
 	fs.StringSliceVar(&flags.Archstrs, "arch", nil, "architectures to build for (e.g., x86_64,ppc64le,arm64) -- default is all, unless specified in config")
 	fs.StringSliceVar(&flags.StrictSourcesFromCache, "strict-sources-from-cache", nil, "step kinds (git-checkout) whose steps take their sources only from --cache-dir; the test fails instead of fetching them (runs: steps and language package managers are not restricted; see docs/BUILD-CACHE.md)")
 	fs.StringSliceVar(&flags.TestOption, "test-option", []string{}, "build options to enable")
@@ -87,6 +88,7 @@ type TestFlags struct {
 	Memory              string
 	Disk                string
 	Timeout             time.Duration
+	Guest               GuestFlags
 
 	// StrictSourcesFromCache lists the step kinds whose sources must come from
 	// the cache directory; see --strict-sources-from-cache.
@@ -137,6 +139,10 @@ func (flags *TestFlags) TestOptions(ctx context.Context, args ...string) ([]buil
 		build.WithTestDisk(flags.Disk),
 		build.WithTestTimeout(flags.Timeout),
 		build.WithTestStrictSourcesFromCache(flags.StrictSourcesFromCache),
+		build.WithTestEnvLockfile(flags.Guest.EnvLockfile),
+		build.WithTestOffline(flags.Guest.Offline),
+		build.WithTestRequireStrongChecksums(flags.Guest.RequireStrongChecksums),
+		build.WithTestLocalPackages(flags.Guest.LocalPackages),
 	}
 
 	if len(args) > 0 {

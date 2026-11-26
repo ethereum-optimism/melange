@@ -52,6 +52,7 @@ func addBuildFlags(fs *pflag.FlagSet, flags *BuildFlags) {
 	fs.StringVar(&flags.CacheDir, "cache-dir", "./melange-cache/", "directory used for cached inputs")
 	fs.StringVar(&flags.CacheSource, "cache-source", "", "directory or bucket used for preloading the cache")
 	fs.StringVar(&flags.ApkCacheDir, "apk-cache-dir", "", "directory used for cached apk packages (default is system-defined cache directory)")
+	addGuestFlags(fs, &flags.Guest, "build")
 	fs.StringVar(&flags.SigningKey, "signing-key", "", "key to use for signing")
 	fs.StringSliceVar(&flags.EnvFiles, "env-file", []string{}, "files to use for preloaded environment variables")
 	fs.StringSliceVar(&flags.ExcludeEnvFromRecordedConfig, "exclude-env-from-recorded-config", []string{}, "environment variable keys to omit from the build configuration recorded in built packages (the variables are still set in the build environment)")
@@ -148,6 +149,7 @@ type BuildFlags struct {
 	ConfigFileLicense    string
 	GenerateProvenance   bool
 	TraceFile            string
+	Guest                GuestFlags
 
 	// ExcludeEnvFromRecordedConfig lists environment variable keys to omit
 	// from the build configuration recorded in built packages.
@@ -258,6 +260,10 @@ func (flags *BuildFlags) BuildOptions(ctx context.Context, args ...string) ([]bu
 		build.WithConfigFileRepositoryURL(flags.ConfigFileGitRepoURL),
 		build.WithConfigFileLicense(flags.ConfigFileLicense),
 		build.WithGenerateProvenance(flags.GenerateProvenance),
+		build.WithEnvLockfile(flags.Guest.EnvLockfile),
+		build.WithOffline(flags.Guest.Offline),
+		build.WithRequireStrongChecksums(flags.Guest.RequireStrongChecksums),
+		build.WithLocalPackages(flags.Guest.LocalPackages),
 	}
 
 	if len(args) > 0 {

@@ -429,6 +429,42 @@ func WithRunner(runner container.Runner) Option {
 	}
 }
 
+// WithEnvLockfile installs the build guest environment from an environment
+// lock file written by `melange lock`.
+func WithEnvLockfile(file string) Option {
+	return func(b *Build) error {
+		b.Guest.LockFile = file
+		return nil
+	}
+}
+
+// WithOffline reads the build guest packages, keys and indexes from the apk
+// cache directory only.
+func WithOffline(offline bool) Option {
+	return func(b *Build) error {
+		b.Guest.Offline = offline
+		return nil
+	}
+}
+
+// WithRequireStrongChecksums fails the build when the environment lock file
+// has a package without a whole-file sha256 or a key without content.
+func WithRequireStrongChecksums(require bool) Option {
+	return func(b *Build) error {
+		b.Guest.RequireStrongChecksums = require
+		return nil
+	}
+}
+
+// WithLocalPackages sets the "<name>=sha256:<hex>" digests of the local
+// packages in the environment lock file.
+func WithLocalPackages(specs []string) Option {
+	return func(b *Build) error {
+		b.Guest.LocalPackages = specs
+		return nil
+	}
+}
+
 func WithPackageCacheDir(apkCacheDir string) Option {
 	return func(b *Build) error {
 		b.ApkCacheDir = apkCacheDir

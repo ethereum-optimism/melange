@@ -28,32 +28,36 @@ melange test [flags]
 ### Options
 
 ```
-      --apk-cache-dir string                directory used for cached apk packages (default is system-defined cache directory)
-      --arch strings                        architectures to build for (e.g., x86_64,ppc64le,arm64) -- default is all, unless specified in config
-      --ca-certificate-append strings       path to a PEM file of extra CA certificates for the guest to trust (overrides $MELANGE_EXTRA_CA_CERTS)
-      --cache-dir string                    directory used for cached inputs
-      --cache-source string                 directory or bucket used for preloading the cache
-      --cpu string                          default CPU resources to use for tests
-      --cpumodel string                     default CPU model to use for tests
-      --debug[=true|false]                  enables debug logging of test pipelines (sets -x for steps)
-      --debug-runner[=true|false]           when enabled, the builder pod will persist after the build succeeds or fails
-      --disk string                         disk size to use for tests
-      --env-file strings                    files to use for preloaded environment variables
-  -h, --help[=true|false]                   help for test
-      --ignore-signatures[=true|false]      ignore repository signature verification
-  -i, --interactive[=true|false]            when enabled, attaches stdin with a tty to the pod on failure
-  -k, --keyring-append strings              path to extra keys to include in the build environment keyring
-      --memory string                       default memory resources to use for tests
-      --pipeline-dirs strings               directories used to extend defined built-in pipelines
-  -r, --repository-append strings           path to extra repositories to include in the build environment
-      --rm[=true|false]                     clean up intermediate artifacts (e.g. container images, temp dirs) (default true)
-      --runner string                       which runner to use to enable running commands, default is based on your platform. Options are ["bubblewrap" "docker" "qemu"]
-      --source-dir string                   directory used for included sources
-      --strict-sources-from-cache strings   step kinds (git-checkout) whose steps take their sources only from --cache-dir; the test fails instead of fetching them (runs: steps and language package managers are not restricted; see docs/BUILD-CACHE.md)
-      --test-option strings                 build options to enable
-      --test-package-append strings         extra packages to install for each of the test environments
-      --timeout duration                    default timeout for tests
-      --workspace-dir string                directory used for the workspace at /home/build
+      --apk-cache-dir string                    directory used for cached apk packages (default is system-defined cache directory)
+      --arch strings                            architectures to build for (e.g., x86_64,ppc64le,arm64) -- default is all, unless specified in config
+      --ca-certificate-append strings           path to a PEM file of extra CA certificates for the guest to trust (overrides $MELANGE_EXTRA_CA_CERTS)
+      --cache-dir string                        directory used for cached inputs
+      --cache-source string                     directory or bucket used for preloading the cache
+      --cpu string                              default CPU resources to use for tests
+      --cpumodel string                         default CPU model to use for tests
+      --debug[=true|false]                      enables debug logging of test pipelines (sets -x for steps)
+      --debug-runner[=true|false]               when enabled, the builder pod will persist after the build succeeds or fails
+      --disk string                             disk size to use for tests
+      --env-file strings                        files to use for preloaded environment variables
+      --env-lockfile string                     install the test environment from this lock file (written by melange lock --test) instead of resolving it from the repository indexes
+  -h, --help[=true|false]                       help for test
+      --ignore-signatures[=true|false]          ignore repository signature verification
+  -i, --interactive[=true|false]                when enabled, attaches stdin with a tty to the pod on failure
+  -k, --keyring-append strings                  path to extra keys to include in the build environment keyring
+      --local-package stringArray               <name>=sha256:<hex> digest of a local package of the environment lock file (repeatable)
+      --memory string                           default memory resources to use for tests
+      --offline[=true|false]                    read the test environment packages, keys and indexes from --apk-cache-dir only, without network access
+      --pipeline-dirs strings                   directories used to extend defined built-in pipelines
+  -r, --repository-append strings               path to extra repositories to include in the build environment
+      --require-strong-checksums[=true|false]   fail when the environment lock file has a package without a sha256 or a key without embedded content
+      --rm[=true|false]                         clean up intermediate artifacts (e.g. container images, temp dirs) (default true)
+      --runner string                           which runner to use to enable running commands, default is based on your platform. Options are ["bubblewrap" "docker" "qemu"]
+      --source-dir string                       directory used for included sources
+      --strict-sources-from-cache strings       step kinds (git-checkout) whose steps take their sources only from --cache-dir; the test fails instead of fetching them (runs: steps and language package managers are not restricted; see docs/BUILD-CACHE.md)
+      --test-option strings                     build options to enable
+      --test-package-append strings             extra packages to install for each of the test environments
+      --timeout duration                        default timeout for tests
+      --workspace-dir string                    directory used for the workspace at /home/build
 ```
 
 ### Options inherited from parent commands
