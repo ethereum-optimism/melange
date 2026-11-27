@@ -322,9 +322,10 @@ func envLockMismatch(l lock.Lock, req envRequest, arch apko_types.Architecture) 
 // guestPkgResolver returns the package resolver for the guest's repository
 // indexes. Without a lock file, the indexes are fetched. With one, they are
 // read from the apk cache only, so the resolver never sees an index newer than
-// the cache, and a guest whose cache lacks the index of an http(s) repository
-// gets a nil resolver, which skips versioned shared library dependencies,
-// unless those were requested with MELANGE_VERSIONED_SHLIB_DEPENDS. An index
+// the cache, and a guest whose cache lacks the index of an http(s) repository,
+// or whose local repository has no index file, gets a nil resolver, which
+// skips versioned shared library dependencies, unless those were requested
+// with MELANGE_VERSIONED_SHLIB_DEPENDS. An index
 // in the cache that fails to load, for example on a bad signature, is an
 // error.
 func guestPkgResolver(ctx context.Context, g GuestEnvironment, bc *apko_build.Context, guestFS apkofs.FullFS, cacheDir string) (*apk.PkgResolver, error) {
@@ -352,39 +353,50 @@ func guestPkgResolver(ctx context.Context, g GuestEnvironment, bc *apko_build.Co
 	if err != nil {
 		return nil, fmt.Errorf("unable to list repositories: %w", err)
 	}
-	missing := missingRemoteIndexes(repos, namedIndexes, bc.Arch().ToAPK())
-	if len(missing) == 0 {
+	remote, local := missingIndexes(repos, namedIndexes, bc.Arch().ToAPK())
+	if len(remote) == 0 && len(local) == 0 {
 		return apk.NewPkgResolver(ctx, namedIndexes), nil
 	}
-	err = fmt.Errorf("the APKINDEX of %s is not in the apk cache", strings.Join(missing, ", "))
+	var errs []error
+	if len(remote) > 0 {
+		errs = append(errs, fmt.Errorf("the APKINDEX of %s is not in the apk cache", strings.Join(remote, ", ")))
+	}
+	if len(local) > 0 {
+		errs = append(errs, fmt.Errorf("the APKINDEX of local repository %s is missing", strings.Join(local, ", ")))
+	}
+	err = errors.Join(errs...)
 	if os.Getenv("MELANGE_VERSIONED_SHLIB_DEPENDS") != "" {
-		return nil, fmt.Errorf("versioned shared library dependencies need the APKINDEX of every repository in the apk cache when building from a lock file: %w", err)
+		return nil, fmt.Errorf("versioned shared library dependencies need the APKINDEX of every repository when building from a lock file: %w", err)
 	}
 	clog.FromContext(ctx).Warnf("building without a package resolver, so no versioned shared library dependencies: %v", err)
 	return nil, nil
 }
 
-// missingRemoteIndexes returns the http(s) repositories of repos that have
-// no index among indexes.
-func missingRemoteIndexes(repos []string, indexes []apk.NamedIndex, arch string) []string {
+// missingIndexes returns the http(s) repositories of repos that have no index
+// among indexes, and the local repositories of repos whose index file does
+// not exist.
+func missingIndexes(repos []string, indexes []apk.NamedIndex, arch string) (remote, local []string) {
 	have := map[string]bool{}
 	for _, idx := range indexes {
 		have[idx.Source()] = true
 	}
-	var missing []string
 	for _, r := range repos {
 		u, err := apko_build.RemoveRepositoryLabel(r)
 		if err != nil {
 			u = r
 		}
-		if !strings.HasPrefix(u, "https://") && !strings.HasPrefix(u, "http://") {
+		if have[apk.IndexURL(u, arch)] {
 			continue
 		}
-		if !have[apk.IndexURL(u, arch)] {
-			missing = append(missing, u)
+		if strings.HasPrefix(u, "https://") || strings.HasPrefix(u, "http://") {
+			remote = append(remote, u)
+			continue
+		}
+		if _, err := os.Stat(strings.TrimPrefix(apk.IndexURL(u, arch), "file://")); errors.Is(err, os.ErrNotExist) {
+			local = append(local, u)
 		}
 	}
-	return missing
+	return remote, local
 }
 
 // LockOptions controls how `melange lock` resolves an environment.

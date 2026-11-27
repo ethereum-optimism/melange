@@ -111,8 +111,8 @@ github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1m
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erofs/go-erofs v0.3.2 h1:GBWc9wyDOBVMLpA9OC0MkFfs4AbiEAAEhNH8SpQwD/4=
 github.com/erofs/go-erofs v0.3.2/go.mod h1:XkSeN9MHszGd4+3gcEjadJLYHCQpWzJ7/8yznzMuzJs=
-github.com/ethereum-optimism/apko v1.5.3-op.3.0.20261127093637-e8081fcc5e55 h1:LhG7r4j9TFwGWNa04r24vjbP9k+9+/gc6xjiOHJqHrw=
-github.com/ethereum-optimism/apko v1.5.3-op.3.0.20261127093637-e8081fcc5e55/go.mod h1:9+h9B6MKnOI/OT6gikh4gRx1SxXHjDHmbeUaci+rgHE=
+github.com/ethereum-optimism/apko v1.5.3-op.4.0.20261127100952-184bc0456a90 h1:wOEaBC4psUxY4BT5SIsXYzhxxmIeJVa5OeWQ/xHjfLU=
+github.com/ethereum-optimism/apko v1.5.3-op.4.0.20261127100952-184bc0456a90/go.mod h1:9+h9B6MKnOI/OT6gikh4gRx1SxXHjDHmbeUaci+rgHE=
 github.com/fatih/color v1.19.0 h1:Zp3PiM21/9Ld6FzSKyL5c/BULoe/ONr9KlbYVOfG8+w=
 github.com/fatih/color v1.19.0/go.mod h1:zNk67I0ZUT1bEGsSGyCZYZNrHuTkJJB+r6Q9VuMi0LE=
 github.com/felixge/httpsnoop v1.1.0 h1:3YtUj32ZZkqZtt3sZZsClsymw/QDuVfpNhoA31zeORc=
