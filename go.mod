@@ -177,4 +177,4 @@ require (
 	k8s.io/klog/v2 v2.140.0 // indirect
 )
 
-replace chainguard.dev/apko => github.com/ethereum-optimism/apko v1.5.3-op.4.0.20261127100952-184bc0456a90
+replace chainguard.dev/apko => github.com/ethereum-optimism/apko v1.5.3-op.5
