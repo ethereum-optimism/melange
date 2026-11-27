@@ -152,6 +152,43 @@ func TestEnvLockMissingRemoteIndex(t *testing.T) {
 	require.ErrorContains(t, err, "the APKINDEX of "+srv.URL+" is not in the apk cache")
 }
 
+// TestEnvLockMissingLocalIndex builds offline from a lock whose remote
+// repository index is cached but whose local repository loses its index.
+func TestEnvLockMissingLocalIndex(t *testing.T) {
+	for name, scheme := range map[string]string{"path": "", "file URL": "file://"} {
+		t.Run(name, func(t *testing.T) {
+			ctx := context.Background()
+			srv := newEnvLockRepo(t, nil)
+			local := copyDir(t, filepath.Join("testdata", "envlock"))
+			repo := scheme + local
+			arch := apko_types.ParseArchitecture("x86_64")
+			ic := apko_types.ImageConfiguration{Contents: apko_types.ImageContents{
+				Repositories: []string{srv.URL},
+				Keyring:      []string{srv.URL + "/melange.rsa.pub"},
+				Packages:     []string{"replayout"},
+			}}
+			cache := t.TempDir()
+			b := &Build{Arch: arch, ApkCacheDir: cache, ExtraRepos: []string{repo}, Configuration: &config.Configuration{}}
+			l, err := generateEnvLock(ctx, "melange.yaml", []envToLock{{arch: arch, ic: ic, extra: b.envAppend(), apkoOpts: b.guestApkoOptions("")}})
+			require.NoError(t, err)
+			lockFile := filepath.Join(t.TempDir(), "melange.lock.json")
+			require.NoError(t, l.SaveToFile(lockFile))
+			srv.Close()
+
+			t.Setenv("MELANGE_VERSIONED_SHLIB_DEPENDS", "1")
+			b = &Build{Arch: arch, ApkCacheDir: cache, ExtraRepos: []string{repo}, Guest: GuestEnvironment{LockFile: lockFile, Offline: true}, Configuration: &config.Configuration{}}
+			require.NoError(t, buildGuest(ctx, b, ic, t.TempDir()))
+			require.NotNil(t, b.PkgResolver)
+
+			require.NoError(t, os.Remove(filepath.Join(local, "x86_64", "APKINDEX.tar.gz")))
+			b = &Build{Arch: arch, ApkCacheDir: cache, ExtraRepos: []string{repo}, Guest: GuestEnvironment{LockFile: lockFile, Offline: true}, Configuration: &config.Configuration{}}
+			err = buildGuest(ctx, b, ic, t.TempDir())
+			require.ErrorContains(t, err, "the APKINDEX of local repository "+repo+" is missing")
+			require.Nil(t, b.PkgResolver)
+		})
+	}
+}
+
 // TestEnvLockResolverReadsCacheOnly builds online from a lock and requires
 // that the package resolver comes from the cache, not from a live index.
 func TestEnvLockResolverReadsCacheOnly(t *testing.T) {
