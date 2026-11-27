@@ -32,7 +32,16 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"chainguard.dev/melange/pkg/config"
+	"chainguard.dev/melange/pkg/container"
 )
+
+// namedRunner is a runner that only has a name.
+type namedRunner struct {
+	container.Runner
+	name string
+}
+
+func (r namedRunner) Name() string { return r.name }
 
 type countingTransport struct {
 	next  http.RoundTripper
@@ -52,6 +61,42 @@ func countNetwork(t *testing.T) *countingTransport {
 	http.DefaultTransport = ct
 	t.Cleanup(func() { http.DefaultTransport = ct.next })
 	return ct
+}
+
+// setTestETag gives repository indexes an ETag, as package repositories do,
+// so that the apk cache stores them.
+func setTestETag(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/APKINDEX.tar.gz") {
+		w.Header().Set("ETag", `"`+r.URL.Path+`"`)
+	}
+}
+
+// cachedIndexes returns the repository index files of an apk cache.
+func cachedIndexes(t *testing.T, cache string) []string {
+	t.Helper()
+	var out []string
+	require.NoError(t, filepath.WalkDir(cache, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() && (filepath.Base(filepath.Dir(p)) == "APKINDEX" || strings.HasPrefix(d.Name(), "APKINDEX")) {
+			out = append(out, p)
+		}
+		return nil
+	}))
+	return out
+}
+
+// removeCachedIndexes removes the repository indexes from an apk cache, as
+// if they had never been fetched.
+func removeCachedIndexes(t *testing.T, cache string) {
+	t.Helper()
+	for _, p := range cachedIndexes(t, cache) {
+		if filepath.Base(filepath.Dir(p)) == "APKINDEX" {
+			p = filepath.Dir(p)
+		}
+		require.NoError(t, os.RemoveAll(p))
+	}
 }
 
 func copyDir(t *testing.T, src string) string {
@@ -81,6 +126,8 @@ type envLockFixture struct {
 	lockFile string
 	// cache holds the locked packages and keys, but no repository index.
 	cache string
+	// indexedCache is cache with the repository index.
+	indexedCache string
 	// served counts the requests the package repository received.
 	served *atomic.Int64
 }
@@ -96,6 +143,7 @@ func newEnvLockFixture(t *testing.T) envLockFixture {
 	files := http.FileServer(http.Dir(filepath.Join("testdata", "envlock")))
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		served.Add(1)
+		setTestETag(w, r)
 		files.ServeHTTP(w, r)
 	}))
 
@@ -121,12 +169,12 @@ func newEnvLockFixture(t *testing.T) envLockFixture {
 	require.NotZero(t, served.Load())
 
 	srv.Close()
-	for _, p := range findFiles(t, cache, func(n string) bool { return strings.HasPrefix(n, "APKINDEX") }) {
-		require.NoError(t, os.Remove(p))
-	}
+	indexedCache := copyDir(t, cache)
+	require.NotEmpty(t, cachedIndexes(t, indexedCache))
+	removeCachedIndexes(t, cache)
 	require.NotEmpty(t, findFiles(t, cache, func(n string) bool { return strings.HasSuffix(n, ".apk") }))
 
-	return envLockFixture{ic: ic, lockFile: lockFile, cache: cache, served: served}
+	return envLockFixture{ic: ic, lockFile: lockFile, cache: cache, indexedCache: indexedCache, served: served}
 }
 
 func TestEnvLockOfflineInstall(t *testing.T) {
@@ -248,12 +296,19 @@ func TestEnvLockOfflineInstall(t *testing.T) {
 }
 
 func TestGuestEnvironmentValidate(t *testing.T) {
+	qemu := namedRunner{name: container.QemuName}
 	tests := []struct {
-		name    string
-		guest   GuestEnvironment
-		wantErr string
+		name      string
+		guest     GuestEnvironment
+		runner    container.Runner
+		initramfs string
+		wantErr   string
 	}{
 		{name: "empty"},
+		{name: "offline with the qemu runner", guest: GuestEnvironment{LockFile: "x", Offline: true}, runner: qemu, wantErr: "needs a prebuilt base initramfs"},
+		{name: "offline with the qemu runner and a prebuilt initramfs", guest: GuestEnvironment{LockFile: "x", Offline: true}, runner: qemu, initramfs: "/initramfs.cpio"},
+		{name: "online with the qemu runner", guest: GuestEnvironment{LockFile: "x"}, runner: qemu},
+		{name: "offline with another runner", guest: GuestEnvironment{LockFile: "x", Offline: true}, runner: namedRunner{name: "bubblewrap"}},
 		{name: "offline without lock file", guest: GuestEnvironment{Offline: true}},
 		{name: "lock file with all options", guest: GuestEnvironment{LockFile: "x", Offline: true, RequireStrongChecksums: true, LocalPackages: []string{"a=sha256:00"}}},
 		{name: "strong checksums without lock file", guest: GuestEnvironment{RequireStrongChecksums: true}, wantErr: "--require-strong-checksums needs --env-lockfile"},
@@ -261,7 +316,8 @@ func TestGuestEnvironmentValidate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := tt.guest.validate()
+			t.Setenv("QEMU_BASE_INITRAMFS", tt.initramfs)
+			err := tt.guest.validate(tt.runner)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				return
@@ -282,7 +338,7 @@ func TestVerifyEnvLock(t *testing.T) {
 	}
 	good := lock.Lock{
 		Version: "v1",
-		Config:  &lock.Config{Name: "melange.yaml", DeepChecksum: newEnvRequest(ic, []string{"git"}).checksum()},
+		Config:  &lock.Config{Name: "melange.yaml", DeepChecksum: newEnvRequest(ic, envAppend{Packages: []string{"git"}}).checksum()},
 		Contents: lock.LockContents{
 			Repositories: []lock.LockRepo{{Name: "packages.example/os/x86_64", Architecture: "x86_64"}},
 			Packages: []lock.LockPkg{
@@ -308,6 +364,8 @@ func TestVerifyEnvLock(t *testing.T) {
 		lock    lock.Lock
 		ic      apko_types.ImageConfiguration
 		extra   []string
+		keys    []string
+		repos   []string
 		arch    apko_types.Architecture
 		wantErr string
 	}{
@@ -319,11 +377,13 @@ func TestVerifyEnvLock(t *testing.T) {
 		{name: "changed version constraint", lock: good, ic: withPackages("busybox", "make>=5"), extra: []string{"git"}, arch: x86, wantErr: "does not match"},
 		{name: "extra package not passed", lock: good, ic: ic, arch: x86, wantErr: "does not match"},
 		{name: "changed repository", lock: good, ic: withRepos("https://other.example/os"), extra: []string{"git"}, arch: x86, wantErr: "repositories: lock has [packages.example/os], configuration has [other.example/os]"},
+		{name: "appended key not locked", lock: good, ic: ic, extra: []string{"git"}, keys: []string{"extra.rsa.pub"}, arch: x86, wantErr: "does not match"},
+		{name: "appended repository not locked", lock: good, ic: ic, extra: []string{"git"}, repos: []string{"./packages"}, arch: x86, wantErr: "does not match"},
 		{name: "no packages for arch", lock: good, ic: ic, extra: []string{"git"}, arch: apko_types.ParseArchitecture("aarch64"), wantErr: "has no packages for aarch64"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := verifyEnvLock("melange.lock.json", tt.lock, tt.ic, tt.extra, tt.arch)
+			err := verifyEnvLock("melange.lock.json", tt.lock, tt.ic, envAppend{Packages: tt.extra, Keys: tt.keys, Repos: tt.repos}, tt.arch)
 			if tt.wantErr != "" {
 				require.ErrorContains(t, err, tt.wantErr)
 				return
@@ -414,14 +474,14 @@ pipeline:
 		b, err := New(ctx, append(opts, WithArch(arch), WithEnvLockfile(lockFile))...)
 		require.NoError(t, err)
 		require.NoError(t, b.Compile(ctx))
-		_, err = lockedEnvironment(lockFile, b.Configuration.Environment, b.ExtraPackages, arch)
+		_, err = lockedEnvironment(lockFile, b.Configuration.Environment, b.envAppend(), arch)
 		require.NoError(t, err)
 	}
 
 	b, err := New(ctx, append(opts[:len(opts)-1], WithArch(archs[0]), WithEnvLockfile(lockFile))...)
 	require.NoError(t, err)
 	require.NoError(t, b.Compile(ctx))
-	_, err = lockedEnvironment(lockFile, b.Configuration.Environment, b.ExtraPackages, archs[0])
+	_, err = lockedEnvironment(lockFile, b.Configuration.Environment, b.envAppend(), archs[0])
 	require.ErrorContains(t, err, "does not match the x86_64 environment")
 }
 

@@ -27,10 +27,13 @@ import (
 	"strings"
 
 	"chainguard.dev/apko/pkg/apk/apk"
+	apkofs "chainguard.dev/apko/pkg/apk/fs"
 	apko_build "chainguard.dev/apko/pkg/build"
 	apko_types "chainguard.dev/apko/pkg/build/types"
 	"chainguard.dev/apko/pkg/lock"
 	"github.com/chainguard-dev/clog"
+
+	"chainguard.dev/melange/pkg/container"
 )
 
 // GuestEnvironment controls how the packages of a build or test guest
@@ -45,14 +48,18 @@ type GuestEnvironment struct {
 	// indexes: they are read from the apk cache directory only.
 	Offline bool
 	// RequireStrongChecksums fails the guest when a locked package has no
-	// whole-file sha256 or a key has no content embedded in the lock file.
+	// whole-file sha256, a key has no content embedded in the lock file, or
+	// the lock file was resolved from unverified repository indexes.
 	RequireStrongChecksums bool
 	// LocalPackages are "<name>=sha256:<hex>" digests for the local entries of
 	// the lock file.
 	LocalPackages []string
 }
 
-func (g GuestEnvironment) validate() error {
+func (g GuestEnvironment) validate(runner container.Runner) error {
+	if g.Offline && runner != nil && runner.Name() == container.QemuName && os.Getenv("QEMU_BASE_INITRAMFS") == "" {
+		return errors.New("--offline with the qemu runner needs a prebuilt base initramfs: build one with melange initramfs and set QEMU_BASE_INITRAMFS")
+	}
 	if g.LockFile != "" {
 		return nil
 	}
@@ -78,6 +85,17 @@ func (g GuestEnvironment) apkoOptions() []apko_build.Option {
 	}
 }
 
+// envAppend is what the command line appends to a guest environment.
+type envAppend struct {
+	// Packages are the packages of --package-append (--test-package-append
+	// for tests).
+	Packages []string
+	// Keys are the keys of --keyring-append.
+	Keys []string
+	// Repos are the repositories of --repository-append.
+	Repos []string
+}
+
 // envRequest is what an environment lock is resolved from: the repositories,
 // keyring and packages a guest environment asks for.
 type envRequest struct {
@@ -86,6 +104,8 @@ type envRequest struct {
 	RuntimeOnlyRepositories []string `json:"runtimeOnlyRepositories"`
 	Keyring                 []string `json:"keyring"`
 	Packages                []string `json:"packages"`
+	KeyringAppend           []string `json:"keyringAppend,omitempty"`
+	RepositoryAppend        []string `json:"repositoryAppend,omitempty"`
 }
 
 func sortedSet(lists ...[]string) []string {
@@ -97,14 +117,21 @@ func sortedSet(lists ...[]string) []string {
 	return slices.Compact(out)
 }
 
-func newEnvRequest(ic apko_types.ImageConfiguration, extraPackages []string) envRequest {
-	return envRequest{
+func newEnvRequest(ic apko_types.ImageConfiguration, extra envAppend) envRequest {
+	r := envRequest{
 		Repositories:            sortedSet(ic.Contents.Repositories),
 		BuildRepositories:       sortedSet(ic.Contents.BuildRepositories),
 		RuntimeOnlyRepositories: sortedSet(ic.Contents.RuntimeOnlyRepositories),
 		Keyring:                 sortedSet(ic.Contents.Keyring),
-		Packages:                sortedSet(ic.Contents.Packages, extraPackages),
+		Packages:                sortedSet(ic.Contents.Packages, extra.Packages),
 	}
+	if len(extra.Keys) > 0 {
+		r.KeyringAppend = sortedSet(extra.Keys)
+	}
+	if len(extra.Repos) > 0 {
+		r.RepositoryAppend = sortedSet(extra.Repos)
+	}
+	return r
 }
 
 func (r envRequest) checksum() string {
@@ -118,10 +145,10 @@ func (r envRequest) checksum() string {
 
 // envToLock is one architecture's guest environment to resolve into a lock.
 type envToLock struct {
-	arch          apko_types.Architecture
-	ic            apko_types.ImageConfiguration
-	extraPackages []string
-	apkoOpts      []apko_build.Option
+	arch     apko_types.Architecture
+	ic       apko_types.ImageConfiguration
+	extra    envAppend
+	apkoOpts []apko_build.Option
 }
 
 // generateEnvLock resolves envs through apko and returns one lock file
@@ -132,9 +159,9 @@ func generateEnvLock(ctx context.Context, name string, envs []envToLock) (*lock.
 	if len(envs) == 0 {
 		return nil, errors.New("no architecture to lock")
 	}
-	sum := newEnvRequest(envs[0].ic, envs[0].extraPackages).checksum()
+	sum := newEnvRequest(envs[0].ic, envs[0].extra).checksum()
 	for _, e := range envs[1:] {
-		if newEnvRequest(e.ic, e.extraPackages).checksum() != sum {
+		if newEnvRequest(e.ic, e.extra).checksum() != sum {
 			return nil, fmt.Errorf("the environment for %s differs from the one for %s: lock each architecture to its own file with --arch", e.arch.ToAPK(), envs[0].arch.ToAPK())
 		}
 	}
@@ -159,13 +186,27 @@ func generateEnvLock(ctx context.Context, name string, envs []envToLock) (*lock.
 		if err != nil {
 			return nil, fmt.Errorf("locking the %s environment: %w", e.arch.ToAPK(), err)
 		}
+		for _, p := range l.Contents.Packages {
+			if !p.Local && p.SHA256 == "" {
+				return nil, fmt.Errorf("locking the %s environment: package %s-%s has no sha256", e.arch.ToAPK(), p.Name, p.Version)
+			}
+		}
+		out.UnverifiedIndexes = out.UnverifiedIndexes || l.UnverifiedIndexes
 		out.Contents.Packages = append(out.Contents.Packages, l.Contents.Packages...)
 		out.Contents.BuildRepositories = append(out.Contents.BuildRepositories, l.Contents.BuildRepositories...)
 		out.Contents.RuntimeOnlyRepositories = append(out.Contents.RuntimeOnlyRepositories, l.Contents.RuntimeOnlyRepositories...)
 		out.Contents.Repositories = append(out.Contents.Repositories, l.Contents.Repositories...)
 		for _, k := range l.Contents.Keyrings {
-			if prev, ok := keyrings[k.Name]; ok && prev.Content != k.Content {
-				return nil, fmt.Errorf("keyring entry %s resolved to different content for different architectures", k.Name)
+			if prev, ok := keyrings[k.Name]; ok {
+				if prev.Content != k.Content {
+					return nil, fmt.Errorf("keyring entry %s resolved to different content for different architectures", k.Name)
+				}
+				k.DiscoveredFor = sortedSet(prev.DiscoveredFor, k.DiscoveredFor)
+				if len(prev.Architectures) == 0 || len(k.Architectures) == 0 {
+					k.Architectures = nil
+				} else {
+					k.Architectures = sortedSet(prev.Architectures, k.Architectures)
+				}
 			}
 			keyrings[k.Name] = k
 		}
@@ -191,12 +232,12 @@ func packageName(entry string) string {
 // lockedEnvironment loads the lock file, checks that it was generated for the
 // environment ic asks for, and returns ic with its packages pinned to the
 // versions locked for arch.
-func lockedEnvironment(file string, ic apko_types.ImageConfiguration, extraPackages []string, arch apko_types.Architecture) (apko_types.ImageConfiguration, error) {
+func lockedEnvironment(file string, ic apko_types.ImageConfiguration, extra envAppend, arch apko_types.Architecture) (apko_types.ImageConfiguration, error) {
 	l, err := lock.FromFile(file)
 	if err != nil {
 		return ic, fmt.Errorf("loading environment lock file: %w", err)
 	}
-	if err := verifyEnvLock(file, l, ic, extraPackages, arch); err != nil {
+	if err := verifyEnvLock(file, l, ic, extra, arch); err != nil {
 		return ic, err
 	}
 
@@ -213,12 +254,12 @@ func lockedEnvironment(file string, ic apko_types.ImageConfiguration, extraPacka
 }
 
 // verifyEnvLock fails when l was not generated for the environment that ic
-// and extraPackages ask for, or has no packages for arch.
-func verifyEnvLock(file string, l lock.Lock, ic apko_types.ImageConfiguration, extraPackages []string, arch apko_types.Architecture) error {
+// and extra ask for, or has no packages for arch.
+func verifyEnvLock(file string, l lock.Lock, ic apko_types.ImageConfiguration, extra envAppend, arch apko_types.Architecture) error {
 	if l.Config == nil || l.Config.DeepChecksum == "" {
 		return fmt.Errorf("environment lock file %s records no environment checksum: generate it with melange lock", file)
 	}
-	req := newEnvRequest(ic, extraPackages)
+	req := newEnvRequest(ic, extra)
 	if l.Config.DeepChecksum != req.checksum() {
 		return fmt.Errorf("environment lock file %s does not match the %s environment of the configuration (regenerate it with melange lock)%s", file, arch.ToAPK(), envLockMismatch(l, req, arch))
 	}
@@ -279,40 +320,71 @@ func envLockMismatch(l lock.Lock, req envRequest, arch apko_types.Architecture) 
 }
 
 // guestPkgResolver returns the package resolver for the guest's repository
-// indexes. An offline guest installed from a lock file does not need the
-// indexes, so when some are not in the apk cache it returns a nil resolver,
-// which skips versioned shared library dependencies, unless those were
-// requested with MELANGE_VERSIONED_SHLIB_DEPENDS.
-func guestPkgResolver(ctx context.Context, g GuestEnvironment, bc *apko_build.Context) (*apk.PkgResolver, error) {
-	namedIndexes, err := bc.APK().GetRepositoryIndexes(ctx, false)
-	if g.LockFile == "" || !g.Offline {
+// indexes. Without a lock file, the indexes are fetched. With one, they are
+// read from the apk cache only, so the resolver never sees an index newer than
+// the cache, and a guest whose cache lacks the index of an http(s) repository
+// gets a nil resolver, which skips versioned shared library dependencies,
+// unless those were requested with MELANGE_VERSIONED_SHLIB_DEPENDS. An index
+// in the cache that fails to load, for example on a bad signature, is an
+// error.
+func guestPkgResolver(ctx context.Context, g GuestEnvironment, bc *apko_build.Context, guestFS apkofs.FullFS, cacheDir string) (*apk.PkgResolver, error) {
+	if g.LockFile == "" {
+		namedIndexes, err := bc.APK().GetRepositoryIndexes(ctx, false)
 		if err != nil {
 			return nil, fmt.Errorf("unable to obtain repository indexes: %w", err)
 		}
 		return apk.NewPkgResolver(ctx, namedIndexes), nil
 	}
 
-	if err == nil {
-		repos, rerr := bc.APK().GetRepositories()
-		if rerr != nil {
-			return nil, fmt.Errorf("unable to list repositories: %w", rerr)
-		}
-		remote := 0
-		for _, r := range repos {
-			if strings.Contains(r, "://") {
-				remote++
-			}
-		}
-		if len(namedIndexes) >= remote {
-			return apk.NewPkgResolver(ctx, namedIndexes), nil
-		}
-		err = fmt.Errorf("%d of %d remote repository indexes are in the apk cache", len(namedIndexes), remote)
+	cached, err := apk.New(ctx,
+		apk.WithFS(guestFS),
+		apk.WithArch(bc.Arch().ToAPK()),
+		apk.WithCache(cacheDir, true, apk.NewCache(true)),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read the apk cache: %w", err)
 	}
+	namedIndexes, err := cached.GetRepositoryIndexes(ctx, false)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read the repository indexes from the apk cache: %w", err)
+	}
+	repos, err := cached.GetRepositories()
+	if err != nil {
+		return nil, fmt.Errorf("unable to list repositories: %w", err)
+	}
+	missing := missingRemoteIndexes(repos, namedIndexes, bc.Arch().ToAPK())
+	if len(missing) == 0 {
+		return apk.NewPkgResolver(ctx, namedIndexes), nil
+	}
+	err = fmt.Errorf("the APKINDEX of %s is not in the apk cache", strings.Join(missing, ", "))
 	if os.Getenv("MELANGE_VERSIONED_SHLIB_DEPENDS") != "" {
-		return nil, fmt.Errorf("versioned shared library dependencies need the APKINDEX of every repository in the apk cache when building offline from a lock file: %w", err)
+		return nil, fmt.Errorf("versioned shared library dependencies need the APKINDEX of every repository in the apk cache when building from a lock file: %w", err)
 	}
-	clog.FromContext(ctx).Warnf("repository indexes are missing from the apk cache (%v); building without a package resolver, so no versioned shared library dependencies", err)
+	clog.FromContext(ctx).Warnf("building without a package resolver, so no versioned shared library dependencies: %v", err)
 	return nil, nil
+}
+
+// missingRemoteIndexes returns the http(s) repositories of repos that have
+// no index among indexes.
+func missingRemoteIndexes(repos []string, indexes []apk.NamedIndex, arch string) []string {
+	have := map[string]bool{}
+	for _, idx := range indexes {
+		have[idx.Source()] = true
+	}
+	var missing []string
+	for _, r := range repos {
+		u, err := apko_build.RemoveRepositoryLabel(r)
+		if err != nil {
+			u = r
+		}
+		if !strings.HasPrefix(u, "https://") && !strings.HasPrefix(u, "http://") {
+			continue
+		}
+		if !have[apk.IndexURL(u, arch)] {
+			missing = append(missing, u)
+		}
+	}
+	return missing
 }
 
 // LockOptions controls how `melange lock` resolves an environment.
@@ -344,10 +416,10 @@ func LockBuildEnvironment(ctx context.Context, archs []apko_types.Architecture, 
 		}
 		name = b.ConfigFile
 		envs = append(envs, envToLock{
-			arch:          arch,
-			ic:            b.Configuration.Environment,
-			extraPackages: b.ExtraPackages,
-			apkoOpts:      append(b.guestApkoOptions(""), apko_build.WithMarkLocalPackages(lo.MarkLocalPackages)),
+			arch:     arch,
+			ic:       b.Configuration.Environment,
+			extra:    b.envAppend(),
+			apkoOpts: append(b.guestApkoOptions(""), apko_build.WithMarkLocalPackages(lo.MarkLocalPackages)),
 		})
 	}
 	return generateEnvLock(ctx, name, envs)
@@ -373,10 +445,10 @@ func LockTestEnvironment(ctx context.Context, archs []apko_types.Architecture, l
 		}
 		name = t.ConfigFile
 		envs = append(envs, envToLock{
-			arch:          arch,
-			ic:            t.Configuration.Test.Environment,
-			extraPackages: t.ExtraTestPackages,
-			apkoOpts:      append(t.guestApkoOptions(""), apko_build.WithMarkLocalPackages(lo.MarkLocalPackages)),
+			arch:     arch,
+			ic:       t.Configuration.Test.Environment,
+			extra:    t.envAppend(),
+			apkoOpts: append(t.guestApkoOptions(""), apko_build.WithMarkLocalPackages(lo.MarkLocalPackages)),
 		})
 	}
 	return generateEnvLock(ctx, name, envs)
