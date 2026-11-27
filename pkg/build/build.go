@@ -230,7 +230,7 @@ func New(ctx context.Context, opts ...Option) (*Build, error) {
 		b.ExtraCACertificates = extraCACertsFromEnv()
 	}
 
-	if err := b.Guest.validate(); err != nil {
+	if err := b.Guest.validate(b.Runner); err != nil {
 		return nil, err
 	}
 
@@ -405,6 +405,12 @@ func (b *Build) buildGuest(ctx context.Context, imgConfig apko_types.ImageConfig
 	return ref, nil
 }
 
+// envAppend returns what the command line appends to the build guest
+// environment.
+func (b *Build) envAppend() envAppend {
+	return envAppend{Packages: b.ExtraPackages, Keys: b.ExtraKeys, Repos: b.ExtraRepos}
+}
+
 // guestApkoOptions returns the apko options shared by resolving and
 // installing the build guest environment.
 func (b *Build) guestApkoOptions(tmp string) []apko_build.Option {
@@ -437,7 +443,7 @@ func (b *Build) newGuestContext(ctx context.Context, imgConfig apko_types.ImageC
 
 	var locked *apko_types.ImageConfiguration
 	if b.Guest.LockFile != "" {
-		ic, err := lockedEnvironment(b.Guest.LockFile, imgConfig, b.ExtraPackages, b.Arch)
+		ic, err := lockedEnvironment(b.Guest.LockFile, imgConfig, b.envAppend(), b.Arch)
 		if err != nil {
 			return nil, err
 		}
@@ -475,7 +481,7 @@ func (b *Build) newGuestContext(ctx context.Context, imgConfig apko_types.ImageC
 	}
 
 	// Get the APK associated with our build, and then get a Resolver
-	b.PkgResolver, err = guestPkgResolver(ctx, b.Guest, bc)
+	b.PkgResolver, err = guestPkgResolver(ctx, b.Guest, bc, guestFS, b.ApkCacheDir)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,7 @@ func addGuestFlags(fs *pflag.FlagSet, flags *GuestFlags, kind string) {
 	}
 	fs.StringVar(&flags.EnvLockfile, "env-lockfile", "", fmt.Sprintf("install the %s environment from this lock file (written by %s) instead of resolving it from the repository indexes", kind, lockCmd))
 	fs.BoolVar(&flags.Offline, "offline", false, fmt.Sprintf("read the %s environment packages, keys and indexes from --apk-cache-dir only, without network access", kind))
-	fs.BoolVar(&flags.RequireStrongChecksums, "require-strong-checksums", false, "fail when the environment lock file has a package without a sha256 or a key without embedded content")
+	fs.BoolVar(&flags.RequireStrongChecksums, "require-strong-checksums", false, "fail when the environment lock file has a package without a sha256 or a key without embedded content, or was resolved from unverified repository indexes")
 	fs.StringArrayVar(&flags.LocalPackages, "local-package", nil, "<name>=sha256:<hex> digest of a local package of the environment lock file (repeatable)")
 }
 
@@ -62,6 +62,7 @@ type lockFlags struct {
 	varsFile     string
 	buildOptions []string
 	ignoreSigs   bool
+	allowUnverif bool
 }
 
 func lockCmd() *cobra.Command {
@@ -76,10 +77,11 @@ with every package's URL, version and checksums, including the sha256 of the
 whole .apk, and the content of the keyring. Pass the file to melange build
 --env-lockfile (melange test --env-lockfile with --test) to install exactly
 these packages.`,
-		Example: `  melange lock melange.yaml --arch x86_64,aarch64 -o melange.lock.json`,
-		Args:    cobra.ExactArgs(1),
+		Example: `  melange lock melange.yaml --arch x86_64,aarch64 -o melange.lock.json
+  melange lock --test melange.yaml mypackage --arch x86_64 -o melange.test.lock.json`,
+		Args: cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLock(cmd.Context(), flags, args[0])
+			return runLock(cmd.Context(), flags, args)
 		},
 	}
 
@@ -96,13 +98,25 @@ these packages.`,
 	fs.StringSliceVar(&flags.envFiles, "env-file", []string{}, "files to use for preloaded environment variables")
 	fs.StringVar(&flags.varsFile, "vars-file", "", "file to use for preloaded build configuration variables")
 	fs.StringSliceVar(&flags.buildOptions, "build-option", []string{}, "build options to enable")
-	fs.BoolVar(&flags.ignoreSigs, "ignore-signatures", false, "ignore repository signature verification")
+	fs.BoolVar(&flags.ignoreSigs, "ignore-signatures", false, "ignore repository signature verification (needs --allow-unverified-lock)")
+	fs.BoolVar(&flags.allowUnverif, "allow-unverified-lock", false, "with --ignore-signatures, write a lock file marked as resolved from unverified indexes, which builds with --require-strong-checksums reject")
 
 	return cmd
 }
 
-func runLock(ctx context.Context, flags *lockFlags, configFile string) error {
+func runLock(ctx context.Context, flags *lockFlags, args []string) error {
 	log := clog.FromContext(ctx)
+	configFile := args[0]
+
+	if flags.ignoreSigs && !flags.allowUnverif {
+		return fmt.Errorf("--ignore-signatures writes a lock file resolved from unverified repository indexes; pass --allow-unverified-lock to write one anyway")
+	}
+	if flags.allowUnverif && !flags.ignoreSigs {
+		return fmt.Errorf("--allow-unverified-lock needs --ignore-signatures")
+	}
+	if len(args) > 1 && !flags.test {
+		return fmt.Errorf("a package name argument is only accepted with --test")
+	}
 
 	archs := apko_types.ParseArchitectures(flags.archstrs)
 	if len(archs) == 0 {
@@ -127,6 +141,9 @@ func runLock(ctx context.Context, flags *lockFlags, configFile string) error {
 			build.WithTestPackageCacheDir(flags.apkCacheDir),
 			build.WithTestEnvFiles(flags.envFiles),
 			build.WithTestIgnoreSignatures(flags.ignoreSigs),
+		}
+		if len(args) > 1 {
+			opts = append(opts, build.WithTestPackage(args[1]))
 		}
 		for _, d := range pipelineDirs {
 			opts = append(opts, build.WithTestPipelineDir(d))

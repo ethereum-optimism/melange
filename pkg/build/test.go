@@ -98,7 +98,7 @@ func NewTest(ctx context.Context, opts ...TestOption) (*Test, error) {
 		t.ExtraCACertificates = extraCACertsFromEnv()
 	}
 
-	if err := t.Guest.validate(); err != nil {
+	if err := t.Guest.validate(t.Runner); err != nil {
 		return nil, err
 	}
 
@@ -203,6 +203,12 @@ func (t *Test) BuildGuest(ctx context.Context, imgConfig apko_types.ImageConfigu
 	return ref, nil
 }
 
+// envAppend returns what the command line appends to the test guest
+// environment.
+func (t *Test) envAppend() envAppend {
+	return envAppend{Packages: t.ExtraTestPackages, Keys: t.ExtraKeys, Repos: t.ExtraRepos}
+}
+
 // guestApkoOptions returns the apko options shared by resolving and
 // installing the test guest environment.
 func (t *Test) guestApkoOptions(tmp string) []apko_build.Option {
@@ -225,7 +231,7 @@ func (t *Test) guestApkoOptions(tmp string) []apko_build.Option {
 func (t *Test) newGuestContext(ctx context.Context, imgConfig apko_types.ImageConfiguration, guestFS apkofs.FullFS, tmp string) (*apko_build.Context, error) {
 	var lockOpts []apko_build.Option
 	if t.Guest.LockFile != "" {
-		locked, err := lockedEnvironment(t.Guest.LockFile, imgConfig, t.ExtraTestPackages, t.Arch)
+		locked, err := lockedEnvironment(t.Guest.LockFile, imgConfig, t.envAppend(), t.Arch)
 		if err != nil {
 			return nil, err
 		}
@@ -318,6 +324,9 @@ func (t *Test) TestPackage(ctx context.Context) error {
 	})
 
 	if t.Guest.LockFile != "" {
+		if t.IsTestless() {
+			return fmt.Errorf("--env-lockfile locks the main test environment, but %s has no main test pipeline", t.ConfigFile)
+		}
 		for _, sp := range t.Configuration.Subpackages {
 			if sp.Test != nil && len(sp.Test.Pipeline) > 0 {
 				return fmt.Errorf("--env-lockfile locks the main test environment only, but subpackage %s has tests", sp.Name)
